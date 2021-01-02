@@ -1,0 +1,6 @@
+# Project exclude paths
+venv
+.idea
+parsechat.py
+new_sess.session
+my_account.session
