@@ -23,22 +23,23 @@ logger = logging.getLogger(__name__)
 PORT = int(os.environ.get('PORT', '8443'))
 
 
-class DuelSearchEngine:
-    def replace_all(self, dic):
-        for i, j in dic.items():
-            text = self.replace(i, j)
-        return text
+def replace_all(mess, dic):
+    for i, j in dic.items():
+        text = mess.replace(i, j)
+    return text
 
-    def find_user(self):
-        with open(CHAT_BASE, 'r') as file:
-            reader = csv.DictReader(file)
-            for row in reader:
-                if self == row['name']:
-                    return int(row['user_id'])
 
-    def get_message_id(self):
-        for message in app.search_messages(ch4tid, query="дуэль", limit=1, from_user=self):
-            return int(message.message_id)
+def find_user(user):
+    with open(CHAT_BASE, 'r') as file:
+        reader = csv.DictReader(file)
+        for row in reader:
+            if user == row['name']:
+                return int(row['user_id'])
+
+
+def get_message_id(user):
+    for message in app.search_messages(ch4tid, query="дуэль", limit=1, from_user=user):
+        return int(message.message_id)
 
 
 @app.on_message(filters.group & filters.regex("Дуэль подтверждена, можно делать ставки;"))
@@ -49,19 +50,19 @@ def duel_bet(client, message):
                 'КФ на ': '',
                 '\n': ' '}
     mes = message.text
-    mw_msg = DuelSearchEngine.replace_all(mes, str_dict)
+    mw_msg = replace_all(mes, str_dict)
     res_msg = mw_msg.split(' ')
     if float(res_msg[3]) < float(res_msg[6]):
         client.send_message(
             chat_id=message.chat.id,
             text=f"Дуэль ставка {random.randint(30, 80)}",
-            reply_to_message_id=DuelSearchEngine.get_message_id(DuelSearchEngine.find_user(res_msg[1]))
+            reply_to_message_id=get_message_id(find_user(res_msg[1]))
         )
     elif float(res_msg[6]) < float(res_msg[3]):
         client.send_message(
             chat_id=message.chat.id,
             text=f"Дуэль ставка {random.randint(30, 80)}",
-            reply_to_message_id=DuelSearchEngine.get_message_id(DuelSearchEngine.find_user(res_msg[4]))
+            reply_to_message_id=get_message_id(find_user(res_msg[4]))
         )
     else:
         client.send_message(
