@@ -1,5 +1,6 @@
 import asyncio
 import random
+import re
 
 import time
 
@@ -23,12 +24,6 @@ logger = logging.getLogger(__name__)
 PORT = int(os.environ.get('PORT', '8443'))
 
 
-def replace_all(mess, dic):
-    for i, j in dic.items():
-        text = mess.replace(i, j)
-    return text
-
-
 def find_user(user):
     with open(CHAT_BASE, 'r') as file:
         reader = csv.DictReader(file)
@@ -42,27 +37,28 @@ def get_message_id(user):
         return int(message.message_id)
 
 
-@app.on_message(filters.group & filters.regex("Дуэль подтверждена, можно делать ставки;"))
+@app.on_message(filters.regex("Дуэль подтверждена, можно делать ставки;"))
 def duel_bet(client, message):
-    str_dict = {'Дуэль подтверждена, можно делать ставки;': '',
-                'Для совершения ставки - "Дуэль ставка СУММА" (реплаем на игрока)': '',
-                'Для старта дуэли - "Дуэль старт': '',
-                'КФ на ': '',
-                '\n': ' '}
-    mes = message.text
-    mw_msg = replace_all(mes, str_dict)
-    res_msg = mw_msg.split(' ')
-    if float(res_msg[3]) < float(res_msg[6]):
+    toad_kf = re.findall(r'[-+]?([0-9]*\.[0-9]+|[0-9]+)', message.text)
+    nicknames = re.findall(r'КФ на (.*?) -', message.text)
+
+    if float(toad_kf[0]) < float(toad_kf[1]):
         client.send_message(
             chat_id=message.chat.id,
-            text=f"Дуэль ставка {random.randint(30, 80)}",
-            reply_to_message_id=get_message_id(find_user(res_msg[1]))
+            text=f"Дуэль ставка 50",
+            reply_to_message_id=get_message_id(find_user(nicknames[0]))
         )
-    elif float(res_msg[6]) < float(res_msg[3]):
+    elif float(toad_kf[1]) < float(toad_kf[0]):
         client.send_message(
             chat_id=message.chat.id,
-            text=f"Дуэль ставка {random.randint(30, 80)}",
-            reply_to_message_id=get_message_id(find_user(res_msg[4]))
+            text=f"Дуэль ставка 50",
+            reply_to_message_id=get_message_id(find_user(nicknames[1]))
+        )
+    elif float(toad_kf[0]) == float(toad_kf[1]):
+        client.send_message(
+            chat_id=message.chat.id,
+            text=f"Дуэль ставка 50",
+            reply_to_message_id=get_message_id(find_user(nicknames[random.randint(0, 1)]))
         )
     else:
         client.send_message(
