@@ -23,9 +23,9 @@ logger = logging.getLogger(__name__)
 PORT = int(os.environ.get('PORT', '8443'))
 
 
-def replace_all(mess, dic):
+def replace_all(text, dic):
     for i, j in dic.items():
-        text = mess.replace(i, j)
+        text = text.replace(i, j)
     return text
 
 
