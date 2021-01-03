@@ -2,8 +2,6 @@ import asyncio
 import random
 import re
 
-import time
-
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from pyrogram import Client, filters
 import logging
